@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  python-agent-service:
+    build: ./python-agent-service
+    ports:
+      - "8000:8000"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+
+  go-gateway:
+    build: ./go-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - PYTHON_SERVICE_URL=http://python-agent-service:8000
+      - REDIS_ADDR=redis:6379
+    depends_on:
+      - redis
+      - python-agent-service

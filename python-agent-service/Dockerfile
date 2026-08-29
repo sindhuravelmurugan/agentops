@@ -1,11 +1,12 @@
-FROM golang:1.22-alpine AS build
+FROM python:3.11-slim
 
 WORKDIR /app
-COPY go.mod ./
-COPY . .
-RUN go mod tidy && go build -o gateway .
 
-FROM alpine:3.20
-COPY --from=build /app/gateway /gateway
-EXPOSE 8080
-CMD ["/gateway"]
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
